@@ -1,0 +1,14 @@
+button{
+    font-size:3em;
+}
+button:hover{
+    filter: brightness(80%);
+}
+.number{
+    background-color:rgb(224, 221, 221);
+    color: white;
+
+}
+.operand{
+    background-color:rgb(187, 184, 184);
+}

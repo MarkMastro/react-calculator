@@ -4,67 +4,65 @@ import './App.css';
 import Button from './Components/Button';
 function App() {
 
-  const [firstNum, setFirstNum] = useState(null);
   const [operand, setOperand] = useState("");
   const [newNumberFlag, setNewNumberFlag] = useState(true);
-  const [displayState, dispatch] = useReducer(reducer, { displayValue: "0", miniDisplayValue: ""});
+  const [displayState, dispatch] = useReducer(reducer, { displayValue: "0", miniDisplayValue: "", firstNum: null});
 
   function reducer(displayState, action) {
     let answer;
+    
     switch(action.type){
       case "+":
-        answer = parseFloat(displayState.displayValue) + parseFloat(firstNum);
-        return {displayValue: answer, miniDisplayValue: answer + operand};
+        console.log("+", operand)
+        answer = parseFloat(displayState.displayValue) + parseFloat(displayState.firstNum);
+        return {displayValue: answer, miniDisplayValue: answer + operand, firstNum: answer};
               
       case "-":
-        answer = parseFloat(firstNum) - parseFloat(displayState.displayValue);
-        return {displayValue: answer, miniDisplayValue: answer + operand};
+        answer = parseFloat(displayState.firstNum) - parseFloat(displayState.displayValue);
+        return {...displayState, displayValue: answer, miniDisplayValue: answer + operand, firstNum: answer};
 
       case "x":
-        answer = parseFloat(firstNum) * parseFloat(displayState.displayValue)
-        return {displayValue: answer, miniDisplayValue: answer + operand};
+        answer = parseFloat(displayState.firstNum) * parseFloat(displayState.displayValue)
+        return {...displayState, displayValue: answer, miniDisplayValue: answer + operand, firstNum: answer};
 
       case "÷":
-        answer = parseFloat(firstNum) / parseFloat(displayState.displayValue);
-        return {displayValue: answer, miniDisplayValue: answer + operand};
+        answer = parseFloat(displayState.firstNum) / parseFloat(displayState.displayValue);
+        return { displayValue: answer, miniDisplayValue: answer + operand, firstNum: answer};
       
       case "1/x":
          answer = 1/parseFloat(displayState.displayValue)
-         return {displayValue: answer, miniDisplayValue: answer + operand}
+         return { displayValue: answer, miniDisplayValue: "1/" + displayState.displayValue + " ", firstNum: answer}
 
       case "x²":
         answer = parseFloat(displayState.displayValue) * parseFloat(displayState.displayValue)
-        return {displayValue: answer, miniDisplayValue: answer + "²"};
+        return { ...displayState, displayValue: answer, miniDisplayValue: action.payload + "² ", firstNum: answer};
 
       case "√x":
+        console.log("sqrt")
         answer = Math.sqrt(parseFloat(displayState.displayValue)) 
-        return {displayValue: answer, miniDisplayValue: "√" + answer};
-        
-      case "=":
-        break;
+        console.log(answer)
+        return {...displayState, displayValue: answer, miniDisplayValue: "√" + displayState.displayValue + " ", firstNum: answer};
             
       case "C":
-        return {displayValue: "0", miniDisplayValue: ""};
+        return {displayValue: "0", miniDisplayValue: "", firstNum: null};
         
-      
-      case "1":
-        return {displayValue: displayState.displayValue + "1", miniDisplayValue: ""};
-      case "2":
-        return {displayValue: displayState.displayValue + "2", miniDisplayValue: ""};
-      case "3":
-        return {displayValue: displayState.displayValue + "3", miniDisplayValue: ""};
-      case "4":
-        return {displayValue: displayState.displayValue + "4", miniDisplayValue: ""};
-      case "5":
-        return {displayValue: displayState.displayValue + "5", miniDisplayValue: ""};
-      case "6":
-        return {displayValue: displayState.displayValue + "6", miniDisplayValue: ""};
-      case "7":
-        return {displayValue: displayState.displayValue + "7", miniDisplayValue: ""};
-      case "8":
-        return {displayValue: displayState.displayValue + "8", miniDisplayValue: ""};
-      case "9":
-        return {displayValue: displayState.displayValue + "9", miniDisplayValue: ""};
+      case "append-number":
+        return { ...displayState, displayValue: displayState.displayValue + action.payload};
+  
+      case "new-number":
+        return { ...displayState, displayValue: action.payload};
+
+      case "+/-":
+        return {...displayState, displayValue: displayState.displayValue - (2 * displayState.displayValue)}
+
+      case ".":
+        return {...displayState, displayValue: displayState.displayValue + "."}
+
+      case "change-operand":
+        return {...displayState, miniDisplayValue: displayState.miniDisplayValue.slice(0,-1) + action.payload};
+
+      case "new-operation":
+        return {...displayState, miniDisplayValue: displayState.displayValue + action.payload, firstNum: displayState.displayValue}
       case "back":
         break;
       
@@ -88,7 +86,7 @@ function App() {
     {"value": 0, "type": "number"},
     {"value": ".", "type": "number"},
   ]
-
+  
   const operandButtons = [
     {"value": "1/x" , "type": "operand"},
     {"value": "x²" , "type": "operand"},
@@ -107,89 +105,60 @@ function App() {
     {"value": "back" , "type": "edit"},
   ]
 
-  // const numberClick=(value) => {
-  //   if(newNumberFlag){
-  //     setDisplayValue(value)
-  //   } else {
-  //    setDisplayValue(displayValue+value)
-  //   }
+  const numberClick=(value) => {
+    if(value === "+/-"){
+      dispatch({type: '+/-', payload: null});
+      setOperand("");
+      setNewNumberFlag(false);
+      return;
+    }
+    if(newNumberFlag){
+      dispatch({type: 'new-number', payload: value})
+    } else {
+      dispatch({type: 'append-number', payload: value})
+    }
 
-  //   switch(value){
-  //     case("+/-"):
-  //       setDisplayValue(displayValue - (2 * displayValue))
-  //       break;
-  //     case("."):
-  //       setDisplayValue(displayValue + ".")
-  //       break;
-  //     default:
-  //       break;
-  //   }
-    
-    
-  //   setNewNumberFlag(false)
-  // }
+    setNewNumberFlag(false)
+  }
 
-  // const computeAnswer = (newOperand) => {
-  //   let answer;
-  //   switch(operand){
-  //     case "+":
-  //       answer = parseFloat(displayValue) + parseFloat(firstNum);
-  //       setDisplayValue(answer);
-  //       setMiniDisplayValue(answer + newOperand);
-  //       return answer;
-  //     case "-":
-  //       answer = parseFloat(firstNum) - parseFloat(displayValue);
-  //       setDisplayValue(answer);
-  //       setMiniDisplayValue(answer + newOperand);
-  //       return answer;
-  //     case "x":
-  //       answer = parseFloat(displayValue) * parseFloat(firstNum);
-  //       setDisplayValue(answer);
-  //       setMiniDisplayValue(answer + newOperand);
-  //       return answer;
-  //     case "÷":
-  //       answer = parseFloat(firstNum) / parseFloat(displayValue);
-  //       setDisplayValue(answer);
-  //       setMiniDisplayValue(answer + newOperand);
-  //       return answer;
-        
-  //     default:
-  //       break;
-  //   }
-  // }
+  const operandClick = (value) => {
 
-  // const operandClick = (value) => {
-  //   if(miniDisplayValue !== "" && newNumberFlag===false) {
-  //     setOperand(value)
-  //     setFirstNum(computeAnswer(value))
+    if(displayState.miniDisplayValue !== "" && newNumberFlag===false) {
+      dispatch({type: operand, payload:null})
+      setOperand(value)
 
-  //   } else if (miniDisplayValue !== "" && newNumberFlag===true) {
-  //     setOperand(value)
-  //     setMiniDisplayValue(miniDisplayValue.slice(0,-1)+ value)
-  //   }
-  //   else {
-  //     setOperand(value);
-  //     setFirstNum(displayValue)
-  //     setMiniDisplayValue(displayValue+value)
-  //   }
+    } else if (displayState.miniDisplayValue !== "" && newNumberFlag===true) {
+      console.log("change-operand")
+      setOperand(value)
+      dispatch({type: "change-operand", payload: value})
+    }
+    else {
+      if( ["1/x", "x²", "√x"].includes(value)){
+        dispatch({type: value, payload: displayState.displayValue})
+        setOperand(value)
+        setNewNumberFlag(true)
+        return;
+      }
+      console.log("new-operation")
+      setOperand(value);
+      dispatch({type: "new-operation", payload: value})
+    }
 
-  //   setNewNumberFlag(true)
-  // }
+    setNewNumberFlag(true)
+  }
 
-  // const editClick = (value) => {
-  //   switch(value){
-  //     case "C":
-  //       setDisplayValue("0");
-  //       setNewNumberFlag(true);
-  //       setMiniDisplayValue("");
-  //       setFirstNum(null);
-  //       setOperand()
-  //       break;
-  //     default:
-  //       break;
-  //   }
+  const editClick = (value) => {
+    switch(value){
+      case "C":
+        dispatch({type: "C", payload:null})
+        setNewNumberFlag(true);
+        setOperand()
+        break;
+      default:
+        break;
+    }
 
-  // }
+  }
   return (  
 
     <div className="main">
@@ -202,7 +171,7 @@ function App() {
       <div className="grid">
           {editButtons.map((button) => {return <Button key={button.value} {...button} onClick={e=>editClick(e.target.value)}/>})}
           <div className="number-grid">
-            {numberButtons.map((button) => {return <Button key={button.value} {...button} onClick={e=>dispatch({type: e.target.value})}/>})}
+            {numberButtons.map((button) => {return <Button key={button.value} {...button} onClick={e=>numberClick(e.target.value)}/>})}
           </div>
         {operandButtons.map((button) => {return <Button key={button.value} {...button} onClick={e=>operandClick(e.target.value)}/>})}
       </div>
